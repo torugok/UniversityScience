@@ -6,7 +6,7 @@ class DatabaseREST {
   static registerUser(String first_name, String last_name, String email,
       String password, String phone, String university_registration) async {
     var response = await http
-        .post(Uri.encodeFull("http://192.168.1.69:2020/register/user"),
+        .post(Uri.encodeFull(DatabaseREST.host+"/register/user"),
             body: json.encode({
               "first_name": first_name,
               "last_name": last_name,
@@ -25,7 +25,7 @@ class DatabaseREST {
 
   static loginUser(String email, String password) async {
     var response =
-        await http.post(Uri.encodeFull("http://192.168.1.69:2020/login/user"),
+        await http.post(Uri.encodeFull(DatabaseREST.host+"/login/user"),
             body: json.encode({
               "email": email,
               "password": password,
