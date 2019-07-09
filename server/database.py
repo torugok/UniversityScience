@@ -1,6 +1,23 @@
 import sqlite3
 
 
+class User:
+    def __init__(self, id=None, first_name="", last_name="", university_registration="", research_projects_ids=[]):
+        self.id = id
+        self.first_name = first_name
+        self.last_name = last_name
+        self.university_registration = university_registration
+        self.research_projects_ids = research_projects_ids
+
+    def toMap(self):
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "research_projects_ids": self.research_projects_ids
+        }
+
+
 def connect_database():
     conn = sqlite3.connect('science_university.db')
     return conn
@@ -30,29 +47,89 @@ def begin_database():
     university_registration TEXT NOT NULL UNIQUE
     );
     """)
+    cursor.execute("""
+    CREATE TABLE if not exists "research_projects" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL,
+	"description"	TEXT NOT NULL,
+	"user_owner_id"	INTEGER NOT NULL,
+	FOREIGN KEY("user_owner_id") REFERENCES "usuarios"("id"));
+    """)
+    cursor.execute("""
+    create table IF NOT EXISTS users_projects(
+    id INTEGER primary key,
+    user_id integer NOT NULL references usuarios(id) on update cascade,
+    research_project_id integer NOT NULL
+    );
+    """)
 
 
 def create_user(first_name, last_name, email, password, phone, university_registration):
     con = connect_database()
-    sql = f"insert into usuarios(first_name,last_name,email,password,phone,university_registration) values( \"{first_name}\",\"{last_name}\",\"{email}\",\"{password}\",\"{phone}\",\"{university_registration}\")"
+    sql = f"""insert into usuarios(first_name,
+                        last_name,
+                        email,
+                        password,
+                        phone,
+                        university_registration) 
+                values( \"{first_name}\",
+                    \"{last_name}\",
+                    \"{email}\",
+                    \"{password}\",
+                    \"{phone}\",
+                    \"{university_registration}\")"""
+
     cursor = con.cursor()
     cursor.execute(sql)
     con.commit()
     con.close()
 
-def login(email,password):
-    sql = f"select first_name,last_name,university_registration from usuarios where email='{email}' and password = '{password}'"
+
+def create_research_project(name, description, user_owner_id):
+    con = connect_database()
+    sql = f"""insert into research_projects(name,
+                        description,
+                        user_owner_id) 
+                values( \"{name}\",
+                    \"{description}\",
+                    \"{user_owner_id}\")"""
+
+    cursor = con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()
+
+
+def login(email, password):
+    sql = f"""select 
+                    id, 
+                    first_name, 
+                    last_name, 
+                    university_registration
+                from usuarios 
+                    where 
+                    email = '{email}' and password = '{password}'"""
     print(sql)
     data = execute_select(sql)
     if len(data) > 0:
-        return True
+        return {
+            "id": data[0][0],
+            "first_name": data[0][1],
+            "last_name": data[0][2],
+            "university_registration": data[0][3]
+        }
     else:
-        return False
+        return None
 
 
 def get_all_users():
     rows = execute_select("""
-    select first_name,last_name,university_registration from usuarios where 1
+        select 
+            first_name,
+            last_name,
+            university_registration 
+        from usuarios 
+            where 1
     """)
     data = []
     for row in rows:

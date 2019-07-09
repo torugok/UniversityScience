@@ -8,10 +8,11 @@ app = Flask(__name__)
 
 
 # status pode ser: error ou success
-def response_api(status, message):
+def response_api(status, message, data={}):
     return {
         "status": status,
-        "message": message
+        "message": message,
+        "data": data
     }
 
 
@@ -27,18 +28,20 @@ def registrations():
         all_users
     )
 
+
 @app.route('/login/user', methods=['GET', 'POST'])
 def login_ser():
     user = request.json
-    logged = db.login(user['email'],user['password'])
-    if logged:
+    result_login = db.login(user['email'], user['password'])
+    if result_login != None:
         return jsonify(
-        {"status":"success","message":"Logado com sucesso"}
+            response_api("success", "Logado com sucesso", result_login)
         )
     else:
         return jsonify(
-        {"status":"error","message":"Dados não conferem"}
+            response_api("success", "Dados não conferem")
         )
+
 
 @app.route('/register/user', methods=['GET', 'POST'])
 def register_user():
@@ -48,7 +51,18 @@ def register_user():
                        user['password'], user['phone'], user['university_registration'])
         return response_api("success", "Inserido com sucesso.")
     except Exception as e:
-        return response_api("error", str(e))
+        return Response(str(response_api("error", str(e))), status=403, mimetype='application/json')
+
+
+@app.route('/register/research/project', methods=['GET', 'POST'])
+def register_research_project():
+    research_project = request.json
+    try:
+        db.create_research_project(
+            research_project['name'], research_project['description'], research_project['user_owner_id'])
+        return response_api("success", "Inserido com sucesso.")
+    except Exception as e:
+        return Response(str(response_api("error", str(e))), status=403, mimetype='application/json')
 
 
 app.run(host='0.0.0.0', port=2020)
