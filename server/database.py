@@ -59,7 +59,7 @@ def begin_database():
     
     """)
 
-    #cursor.execute(""""
+    # cursor.execute(""""
    # CREATE UNIQUE INDEX if not exists "unique_name" ON "research_projects" (
    #     "name"
    # );""")
@@ -102,7 +102,7 @@ def create_research_project(name, description, user_owner_id):
                 values( \"{name}\",
                     \"{description}\",
                     \"{user_owner_id}\")"""
-    
+
     cursor = con.cursor()
     cursor.execute(sql)
 
@@ -161,35 +161,46 @@ def get_all_users():
 def get_all_research_projects():
     rows = execute_select("""
         select 
-            users_projects.research_project_id,
+            research_projects.id,
             research_projects.name,
             research_projects.description,
-            research_projects.user_owner_id, 
-            users_projects.user_id,
-            usuarios.first_name,
-            usuarios.last_name,
-            usuarios.email,
-            usuarios.phone,
-            usuarios.university_registration
-        from research_projects 
-            inner join users_projects on
-            research_projects.id = users_projects.research_project_id
-        inner join usuarios on 
-            usuarios.id = users_projects.user_id
-        where 
-        1
+            research_projects.user_owner_id
+        from research_projects       
+        where 1
     """)
     data = []
-    #if not any(d['main_color'] == 'red' for d in a):
 
     for row in rows:
+        users = execute_select(f"""
+            select  users_projects.user_id,
+                    usuarios.first_name,
+                    usuarios.last_name,
+                    usuarios.email,
+                    usuarios.phone,
+                    usuarios.university_registration
+                from usuarios 
+                inner join users_projects on 
+                    usuarios.id = users_projects.user_id
+                where 
+                users_projects.research_project_id = {row[0]}
+                """)
+        users_in_research = []
+        for user in users:
+            users_in_research.append({
+                "user_id": user[0],
+                "first_name": user[1],
+                "last_name": user[2],
+                "email": user[3],
+                "phone": user[4],
+                "university_registration": user[5],
+            })
+
         data.append({
             "id": row[0],
             "name": row[1],
             "description": row[2],
             "user_owner_id": row[3],
-
-        })
+            "users_in_research": users_in_research})
     return data
 
 
