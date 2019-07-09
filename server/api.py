@@ -29,6 +29,22 @@ def registrations():
     )
 
 
+@app.route('/registrations/research_projects', methods=['GET', 'POST'])
+def registrations_research_projects():
+    all_projects = db.get_all_research_projects()
+    return jsonify(
+        all_projects
+    )
+
+
+@app.route('/registrations/my_projects', methods=['GET', 'POST'])
+def registrations_my_projects():
+    all_projects = db.get_all_research_projects()
+    return jsonify(
+        all_projects
+    )
+
+
 @app.route('/login/user', methods=['GET', 'POST'])
 def login_ser():
     user = request.json
@@ -60,7 +76,7 @@ def register_research_project():
     try:
         db.create_research_project(
             research_project['name'], research_project['description'], research_project['user_owner_id'])
-        return response_api("success", "Inserido com sucesso.")
+        return jsonify(response_api("success", "Inserido com sucesso."))
     except Exception as e:
         return Response(str(response_api("error", str(e))), status=403, mimetype='application/json')
 

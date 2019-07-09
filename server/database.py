@@ -47,14 +47,23 @@ def begin_database():
     university_registration TEXT NOT NULL UNIQUE
     );
     """)
+
     cursor.execute("""
     CREATE TABLE if not exists "research_projects" (
-	"id"	INTEGER,
+	"id"	INTEGER primary key,
 	"name"	TEXT NOT NULL,
 	"description"	TEXT NOT NULL,
 	"user_owner_id"	INTEGER NOT NULL,
-	FOREIGN KEY("user_owner_id") REFERENCES "usuarios"("id"));
+	FOREIGN KEY("user_owner_id") REFERENCES "usuarios"("id")
+    );
+    
     """)
+
+    #cursor.execute(""""
+   # CREATE UNIQUE INDEX if not exists "unique_name" ON "research_projects" (
+   #     "name"
+   # );""")
+
     cursor.execute("""
     create table IF NOT EXISTS users_projects(
     id INTEGER primary key,
@@ -93,9 +102,17 @@ def create_research_project(name, description, user_owner_id):
                 values( \"{name}\",
                     \"{description}\",
                     \"{user_owner_id}\")"""
-
+    
     cursor = con.cursor()
     cursor.execute(sql)
+
+    sql_assoc = f"""insert into users_projects(user_id,
+                        research_project_id) 
+                values( \"{user_owner_id}\",
+                    \"{cursor.lastrowid}\")"""
+
+    cursor.execute(sql_assoc)
+
     con.commit()
     con.close()
 
@@ -137,5 +154,61 @@ def get_all_users():
             "first_name": row[0],
             "last_name": row[1],
             "university_registration": row[2],
+        })
+    return data
+
+
+def get_all_research_projects():
+    rows = execute_select("""
+        select 
+            users_projects.research_project_id,
+            research_projects.name,
+            research_projects.description,
+            research_projects.user_owner_id, 
+            users_projects.user_id,
+            usuarios.first_name,
+            usuarios.last_name,
+            usuarios.email,
+            usuarios.phone,
+            usuarios.university_registration
+        from research_projects 
+            inner join users_projects on
+            research_projects.id = users_projects.research_project_id
+        inner join usuarios on 
+            usuarios.id = users_projects.user_id
+        where 
+        1
+    """)
+    data = []
+    #if not any(d['main_color'] == 'red' for d in a):
+
+    for row in rows:
+        data.append({
+            "id": row[0],
+            "name": row[1],
+            "description": row[2],
+            "user_owner_id": row[3],
+
+        })
+    return data
+
+
+def get_my_projects(user_id):
+    rows = execute_select("""
+        select 
+            id,
+            name,
+            description,
+            user_owner_id
+        from research_projects 
+            where 1
+    """)
+    data = []
+    for row in rows:
+        data.append({
+            "id": row[0],
+            "name": row[1],
+            "description": row[2],
+            "user_owner_id": row[3]
         })
     return data
