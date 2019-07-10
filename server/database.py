@@ -95,7 +95,7 @@ def create_user(first_name, last_name, email, password, phone, university_regist
     con.close()
 
 
-def edit_research_project(id,name,description, user_owner_id, users_in_research=[]):
+def edit_research_project(id, name, description, user_owner_id, users_in_research=[]):
     con = connect_database()
     sql = f"""UPDATE research_projects
                  SET 
@@ -107,6 +107,7 @@ def edit_research_project(id,name,description, user_owner_id, users_in_research=
     cursor.execute(sql)
     con.commit()
     con.close()
+
 
 def create_research_project(name, description, user_owner_id):
     con = connect_database()
@@ -178,18 +179,25 @@ def get_user(user_id):
         select 
             first_name,
             last_name,
-            university_registration 
+            university_registration ,
+            id,
+            email,
+            phone
         from usuarios 
-            where id = {user_id} limit 1
+            where id = {user_id} 
     """)
     if len(row) > 0:
         return{
             "first_name": row[0][0],
             "last_name": row[0][1],
             "university_registration": row[0][2],
+            "id": row[0][3],
+            "email": row[0][4],
+            "phone": row[0][5]
+
         }
     else:
-        return []
+        return None
 
 
 def get_all_research_projects():
@@ -211,7 +219,8 @@ def get_all_research_projects():
                     usuarios.last_name,
                     usuarios.email,
                     usuarios.phone,
-                    usuarios.university_registration
+                    usuarios.university_registration,
+                    users_projects.status
                 from usuarios 
                 inner join users_projects on 
                     usuarios.id = users_projects.user_id
@@ -227,6 +236,7 @@ def get_all_research_projects():
                 "email": user[3],
                 "phone": user[4],
                 "university_registration": user[5],
+                "status": user[6],
             })
 
         user_owner = get_user(row[3])
@@ -246,7 +256,8 @@ def get_my_research_projects(user_id):
             research_projects.id,
             research_projects.name,
             research_projects.description,
-            research_projects.user_owner_id
+            research_projects.user_owner_id,
+            users_projects.status
         from research_projects 
         inner join users_projects on
         research_projects.id = users_projects.research_project_id   
@@ -263,11 +274,18 @@ def get_my_research_projects(user_id):
                     usuarios.email,
                     usuarios.phone,
                     usuarios.university_registration
+                    
                 from usuarios 
                 inner join users_projects on 
                     usuarios.id = users_projects.user_id
                 where 
                 users_projects.research_project_id = {row[0]}
+                AND
+                (users_projects.status = 'APROVADO'
+                or
+                users_projects.status = 'ADMINISTRADOR'
+                )
+
                 """)
         users_in_research = []
         for user in users:
@@ -289,4 +307,3 @@ def get_my_research_projects(user_id):
             "user_owner": user_owner,
             "users_in_research": users_in_research})
     return research_projects_data
-
