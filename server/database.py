@@ -307,3 +307,58 @@ def get_my_research_projects(user_id):
             "user_owner": user_owner,
             "users_in_research": users_in_research})
     return research_projects_data
+
+
+def get_waiting_users(user_id):
+    sql = f"""
+           SELECT users_projects.id as use_this_id_to_update,
+	users_projects.research_project_id,
+	research_projects.name,
+	research_projects.description,
+	usuarios.id as user_id,
+	usuarios.first_name,
+	usuarios.last_name,
+	usuarios.email,
+	usuarios.phone,
+	usuarios.university_registration,
+	users_projects.status
+            
+            from 
+            users_projects
+            inner join 
+            usuarios on
+            users_projects.user_id = usuarios.id
+            inner join
+            research_projects on
+            users_projects.research_project_id
+            =
+            research_projects.id
+            where 
+			users_projects.research_project_id in( 
+			select users_projects.research_project_id 
+			from users_projects 
+			where 
+			users_projects.user_id = {user_id}
+			and 
+			users_projects.status = 'ADMINISTRADOR'
+			) 
+			and users_projects.user_id != {user_id}
+			and users_projects.status = 'ESPERA'"""
+
+    rows = execute_select(sql)
+    data_pretty = []
+    for row in rows:
+        data_pretty.append({
+            "id_to_update": row[0],
+            "research_project_id": row[1],
+            "research_project_name": row[2],
+            "research_project_description": row[3],
+            "user_id": row[4],
+            "user_first_name": row[5],
+            "user_last_name": row[6],
+            "user_email": row[7],
+            "user_phone": row[8],
+            "user_university_registration": row[9],
+            "user_status_in_research": row[10]
+        })
+    return data_pretty
