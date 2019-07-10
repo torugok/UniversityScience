@@ -362,3 +362,19 @@ def get_waiting_users(user_id):
             "user_status_in_research": row[10]
         })
     return data_pretty
+
+
+def set_status_user(id, user_id, status):
+    con = connect_database()
+    sql = f"""update 
+        users_projects 
+        set 
+        status = '{status}'
+        where 
+        users_projects.id = {id} 
+        and 
+        users_projects.user_id = {user_id}"""
+    cursor = con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()

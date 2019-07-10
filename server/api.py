@@ -90,12 +90,26 @@ def register_research_project():
     except Exception as e:
         return jsonify(response_api("error", str(e)))
 
+
 @app.route('/edit/research/project', methods=['GET', 'POST'])
 def edit_research_project():
     research_project_edited = request.json
     print(research_project_edited)
     db.edit_research_project(research_project_edited['id'], research_project_edited['name'],
                              research_project_edited['description'], research_project_edited['user_owner_id'])
+    return jsonify(response_api("sucess", "Alterado com sucesso."))
+
+
+@app.route('/research_projects/waiting/<user_id>', methods=['GET', 'POST'])
+def get_users_waiting(user_id):
+    waiting_users = db.get_waiting_users(user_id)
+    return jsonify(waiting_users)
+
+
+@app.route('/edit/status/user', methods=['GET', 'POST'])
+def edit_status_user():
+    requeste = request.json
+    db.set_status_user(requeste['id'],requeste['user_id'],requeste['status'])
     return jsonify(response_api("sucess", "Alterado com sucesso."))
 
 
