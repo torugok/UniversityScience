@@ -5,6 +5,8 @@ import 'package:unifesspa_ciencia/services/database_rest.dart';
 import 'package:unifesspa_ciencia/screens/feed.dart';
 import 'package:unifesspa_ciencia/screens/registration.dart';
 
+import 'package:unifesspa_ciencia/models/user.dart';
+
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -51,6 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: () async {
                   var response =
                       await DatabaseREST.loginUser(_email.text, _password.text);
+                  var user = User.fromJson(response['data']);
                   if (response['status'] == 'error') {
                     Alert(
                       context: context,
@@ -69,9 +72,9 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ).show();
                   } else {
-                    Navigator.push(context,
+                    Navigator.pushReplacement(context,
                         MaterialPageRoute(builder: (context) {
-                      return FeedPage();
+                      return FeedPage(user);
                     }));
                   }
                 }),

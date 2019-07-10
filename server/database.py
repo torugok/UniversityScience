@@ -68,7 +68,8 @@ def begin_database():
     create table IF NOT EXISTS users_projects(
     id INTEGER primary key,
     user_id integer NOT NULL references usuarios(id) on update cascade,
-    research_project_id integer NOT NULL
+    research_project_id integer NOT NULL,
+    status TEXT NOT NULL default "ESPERA" -- STATUS => ADMINISTRADOR | ESPERA | APROVADO | NEGADO
     );
     """)
 
@@ -94,6 +95,19 @@ def create_user(first_name, last_name, email, password, phone, university_regist
     con.close()
 
 
+def edit_research_project(id,name,description, user_owner_id, users_in_research=[]):
+    con = connect_database()
+    sql = f"""UPDATE research_projects
+                 SET 
+                 name = '{name}', 
+                 description = '{description}', 
+                 user_owner_id = '{user_owner_id}'
+              WHERE id = {id}"""
+    cursor = con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()
+
 def create_research_project(name, description, user_owner_id):
     con = connect_database()
     sql = f"""insert into research_projects(name,
@@ -107,9 +121,11 @@ def create_research_project(name, description, user_owner_id):
     cursor.execute(sql)
 
     sql_assoc = f"""insert into users_projects(user_id,
-                        research_project_id) 
+                        research_project_id,
+                        status) 
                 values( \"{user_owner_id}\",
-                    \"{cursor.lastrowid}\")"""
+                    \"{cursor.lastrowid}\",
+                    \"ADMINISTRADOR\")"""
 
     cursor.execute(sql_assoc)
 
@@ -126,7 +142,6 @@ def login(email, password):
                 from usuarios 
                     where 
                     email = '{email}' and password = '{password}'"""
-    print(sql)
     data = execute_select(sql)
     if len(data) > 0:
         return {
@@ -158,6 +173,25 @@ def get_all_users():
     return data
 
 
+def get_user(user_id):
+    row = execute_select(f"""
+        select 
+            first_name,
+            last_name,
+            university_registration 
+        from usuarios 
+            where id = {user_id} limit 1
+    """)
+    if len(row) > 0:
+        return{
+            "first_name": row[0][0],
+            "last_name": row[0][1],
+            "university_registration": row[0][2],
+        }
+    else:
+        return []
+
+
 def get_all_research_projects():
     rows = execute_select("""
         select 
@@ -168,8 +202,8 @@ def get_all_research_projects():
         from research_projects       
         where 1
     """)
-    data = []
 
+    research_projects_data = []
     for row in rows:
         users = execute_select(f"""
             select  users_projects.user_id,
@@ -195,31 +229,64 @@ def get_all_research_projects():
                 "university_registration": user[5],
             })
 
-        data.append({
+        user_owner = get_user(row[3])
+
+        research_projects_data.append({
             "id": row[0],
             "name": row[1],
             "description": row[2],
-            "user_owner_id": row[3],
+            "user_owner": user_owner,
             "users_in_research": users_in_research})
-    return data
+    return research_projects_data
 
 
-def get_my_projects(user_id):
-    rows = execute_select("""
+def get_my_research_projects(user_id):
+    rows = execute_select(f"""
         select 
-            id,
-            name,
-            description,
-            user_owner_id
+            research_projects.id,
+            research_projects.name,
+            research_projects.description,
+            research_projects.user_owner_id
         from research_projects 
-            where 1
+        inner join users_projects on
+        research_projects.id = users_projects.research_project_id   
+        where 
+        users_projects.user_id = {user_id}
     """)
-    data = []
+
+    research_projects_data = []
     for row in rows:
-        data.append({
+        users = execute_select(f"""
+            select  users_projects.user_id,
+                    usuarios.first_name,
+                    usuarios.last_name,
+                    usuarios.email,
+                    usuarios.phone,
+                    usuarios.university_registration
+                from usuarios 
+                inner join users_projects on 
+                    usuarios.id = users_projects.user_id
+                where 
+                users_projects.research_project_id = {row[0]}
+                """)
+        users_in_research = []
+        for user in users:
+            users_in_research.append({
+                "user_id": user[0],
+                "first_name": user[1],
+                "last_name": user[2],
+                "email": user[3],
+                "phone": user[4],
+                "university_registration": user[5],
+            })
+
+        user_owner = get_user(row[3])
+
+        research_projects_data.append({
             "id": row[0],
             "name": row[1],
             "description": row[2],
-            "user_owner_id": row[3]
-        })
-    return data
+            "user_owner": user_owner,
+            "users_in_research": users_in_research})
+    return research_projects_data
+

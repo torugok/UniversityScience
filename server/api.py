@@ -21,6 +21,14 @@ def index():
     return "<h1>Bem vindo</h1>"
 
 
+@app.route('/registrations/users/<user_id>', methods=['GET', 'POST'])
+def registration_user(user_id):
+    user = db.get_user(user_id)
+    return jsonify(
+        user
+    )
+
+
 @app.route('/registrations/users', methods=['GET', 'POST'])
 def registrations():
     all_users = db.get_all_users()
@@ -37,9 +45,9 @@ def registrations_research_projects():
     )
 
 
-@app.route('/registrations/my_projects', methods=['GET', 'POST'])
-def registrations_my_projects():
-    all_projects = db.get_all_research_projects()
+@app.route('/registrations/my_projects/<user_id>', methods=['GET', 'POST'])
+def registrations_my_projects(user_id):
+    all_projects = db.get_my_research_projects(user_id)
     return jsonify(
         all_projects
     )
@@ -55,7 +63,7 @@ def login_ser():
         )
     else:
         return jsonify(
-            response_api("success", "Dados não conferem")
+            response_api("error", "Dados não conferem")
         )
 
 
@@ -67,7 +75,7 @@ def register_user():
                        user['password'], user['phone'], user['university_registration'])
         return response_api("success", "Inserido com sucesso.")
     except Exception as e:
-        return Response(str(response_api("error", str(e))), status=403, mimetype='application/json')
+        return jsonify(response_api("error", str(e)))
 
 
 @app.route('/register/research/project', methods=['GET', 'POST'])
@@ -77,8 +85,18 @@ def register_research_project():
         db.create_research_project(
             research_project['name'], research_project['description'], research_project['user_owner_id'])
         return jsonify(response_api("success", "Inserido com sucesso."))
+    except sqlite3.IntegrityError as e:
+        return jsonify(response_api("error", "Já existe um projeto com esse nome."))
     except Exception as e:
-        return Response(str(response_api("error", str(e))), status=403, mimetype='application/json')
+        return jsonify(response_api("error", str(e)))
+
+@app.route('/edit/research/project', methods=['GET', 'POST'])
+def edit_research_project():
+    research_project_edited = request.json
+    print(research_project_edited)
+    db.edit_research_project(research_project_edited['id'], research_project_edited['name'],
+                             research_project_edited['description'], research_project_edited['user_owner_id'])
+    return jsonify(response_api("sucess", "Alterado com sucesso."))
 
 
 app.run(host='0.0.0.0', port=2020)

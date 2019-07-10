@@ -3,26 +3,29 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 
 import 'package:unifesspa_ciencia/services/database_rest.dart';
 
-class RegistrationPage extends StatefulWidget {
+import 'package:unifesspa_ciencia/models/user.dart';
+
+class NewResearchProject extends StatefulWidget {
+  final User user;
+  NewResearchProject(this.user);
   @override
-  _RegistrationPageState createState() => _RegistrationPageState();
+  _NewResearchProjectState createState() => _NewResearchProjectState(this.user);
 }
 
-class _RegistrationPageState extends State<RegistrationPage> {
+class _NewResearchProjectState extends State<NewResearchProject> {
+  User user;
+  _NewResearchProjectState(this.user);
+
   var _formKey = GlobalKey<FormState>();
 
-  var _firstName = TextEditingController();
-  var _lastName = TextEditingController();
-  var _email = TextEditingController();
-  var _password = TextEditingController();
-  var _phone = TextEditingController();
-  var _universityRegistration = TextEditingController();
+  var _name = TextEditingController();
+  var _description = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Faça seu Registro"),
+        title: Text("Novo Projeto"),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -33,57 +36,25 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Text(
-                    'Primeiro Nome',
+                    'Nome',
                     style: new TextStyle(fontSize: 16.0),
                   ),
                   TextFormField(
-                    controller: _firstName,
+                    controller: _name,
                   ),
                   Text(
-                    'Sobrenome',
+                    'Descrição',
                     style: new TextStyle(fontSize: 16.0),
                   ),
                   TextFormField(
-                    controller: _lastName,
-                  ),
-                  Text(
-                    'email',
-                    style: new TextStyle(fontSize: 16.0),
-                  ),
-                  TextFormField(
-                    controller: _email,
-                  ),
-                  Text(
-                    'senha',
-                    style: new TextStyle(fontSize: 16.0),
-                  ),
-                  TextFormField(
-                    controller: _password,
-                  ),
-                  Text(
-                    'Telefone',
-                    style: new TextStyle(fontSize: 16.0),
-                  ),
-                  TextFormField(
-                    controller: _phone,
-                  ),
-                  Text(
-                    'Matrícula',
-                    style: new TextStyle(fontSize: 16.0),
-                  ),
-                  TextFormField(
-                    controller: _universityRegistration,
+                    controller: _description,
                   ),
                   RaisedButton(
                       child: Text("Salvar"),
                       onPressed: () async {
-                        var response = await DatabaseREST.registerUser(
-                            _firstName.text,
-                            _lastName.text,
-                            _email.text,
-                            _password.text,
-                            _phone.text,
-                            _universityRegistration.text);
+                        var response =
+                            await DatabaseREST.registerResearchProject(
+                                _name.text, _description.text, this.user.id);
                         if (response['status'] == 'error') {
                           Alert(
                             context: context,
