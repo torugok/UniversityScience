@@ -19,7 +19,7 @@ class DatabaseREST {
             headers: {
           "content-type": "application/json",
           "accept": "application/json",
-        }).catchError(() {
+        }).catchError((e) {
       return '{ "status" : "error", "message":"Sem conexão"}';
     });
 
@@ -96,4 +96,62 @@ class DatabaseREST {
       return {"status": "error", "message": "errei"};
     }
   }
+
+  static getUsersWaitingProjects(int userId) async {
+    try {
+      var response = await http
+          .get(DatabaseREST.host + '/research_projects/waiting/$userId');
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"status": "error", "message": "errei"};
+    }
+  }
+
+  static setStatusUser(int id, int userId, String status) async {
+    try {
+      var response =
+          await http.post(Uri.encodeFull(DatabaseREST.host + "/edit/status/user"),
+              body: json.encode({
+                "id": id,
+                "user_id": userId,
+                "status" : status
+                }),
+              headers: {
+            "content-type": "application/json",
+            "accept": "application/json",
+          });
+
+      var body = json.decode(response.body);
+      return body;
+    } catch (e) {
+      if (e is SocketException)
+        return {"status": "error", "message": "Sem conexão"};
+      else
+        return {"status": "error", "message": e.toString()};
+    }
+  }
+
+  static requestParticiparPesquisa(int userId, int researchProjectId) async {
+    try {
+      var response =
+          await http.post(Uri.encodeFull(DatabaseREST.host + "/request/participation/project"),
+              body: json.encode({
+                "user_id": userId,
+                "research_project_id" : researchProjectId
+                }),
+              headers: {
+            "content-type": "application/json",
+            "accept": "application/json",
+          });
+
+      var body = json.decode(response.body);
+      return body;
+    } catch (e) {
+      if (e is SocketException)
+        return {"status": "error", "message": "Sem conexão"};
+      else
+        return {"status": "error", "message": e.toString()};
+    }
+  }
+
 }

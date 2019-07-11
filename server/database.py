@@ -226,6 +226,13 @@ def get_all_research_projects():
                     usuarios.id = users_projects.user_id
                 where 
                 users_projects.research_project_id = {row[0]}
+                AND
+                (users_projects.status = 'APROVADO'
+                or
+                users_projects.status = 'ADMINISTRADOR'
+                or
+                users_projects.status = 'ESPERA'
+                )
                 """)
         users_in_research = []
         for user in users:
@@ -284,6 +291,8 @@ def get_my_research_projects(user_id):
                 (users_projects.status = 'APROVADO'
                 or
                 users_projects.status = 'ADMINISTRADOR'
+                or
+                users_projects.status = 'ESPERA'
                 )
 
                 """)
@@ -386,6 +395,7 @@ def request_participation_project(user_id, research_project_id):
             (user_id, research_project_id, status)
             VALUES ({user_id}, {research_project_id}, "ESPERA");
     '''
+    print(sql)
     con = connect_database()
     cursor = con.cursor()
     cursor.execute(sql)
