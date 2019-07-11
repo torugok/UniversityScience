@@ -378,3 +378,16 @@ def set_status_user(id, user_id, status):
     cursor.execute(sql)
     con.commit()
     con.close()
+
+
+def request_participation_project(user_id, research_project_id):
+    sql = f''' 
+    INSERT INTO users_projects
+            (user_id, research_project_id, status)
+            VALUES ({user_id}, {research_project_id}, "ESPERA");
+    '''
+    con = connect_database()
+    cursor = con.cursor()
+    cursor.execute(sql)
+    con.commit()
+    con.close()

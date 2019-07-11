@@ -112,5 +112,12 @@ def edit_status_user():
     db.set_status_user(requeste['id'],requeste['user_id'],requeste['status'])
     return jsonify(response_api("sucess", "Alterado com sucesso."))
 
+@app.route('/request/participation/project', methods=['GET', 'POST'])
+def request_participation_project():
+    requeste = request.json
+    db.request_participation_project(requeste['user_id'],requeste['research_project_id'])
+    return jsonify(response_api("sucess", "Requisitado com sucesso."))
+
+
 
 app.run(host='0.0.0.0', port=2020)
