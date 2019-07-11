@@ -270,8 +270,12 @@ def get_my_research_projects(user_id):
         research_projects.id = users_projects.research_project_id   
         where 
         users_projects.user_id = {user_id}
+        AND
+                (users_projects.status = 'APROVADO' or
+                users_projects.status = 'ADMINISTRADOR'
+                )
     """)
-
+    print(rows)
     research_projects_data = []
     for row in rows:
         users = execute_select(f"""
@@ -291,8 +295,8 @@ def get_my_research_projects(user_id):
                 (users_projects.status = 'APROVADO'
                 or
                 users_projects.status = 'ADMINISTRADOR'
-                or
-                users_projects.status = 'ESPERA'
+               -- or
+               -- users_projects.status = 'ESPERA'
                 )
 
                 """)
