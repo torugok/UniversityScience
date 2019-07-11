@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 class DatabaseREST {
-  static const String host = "http://192.168.1.69:2020";
+  static String host = "http://192.168.1.69:2020";
   static registerUser(String firstName, String lastName, String email,
       String password, String phone, String universityRegistration) async {
     var response =
