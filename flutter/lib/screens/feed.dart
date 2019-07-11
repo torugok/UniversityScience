@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:unifesspa_ciencia/screens/login.dart';
 import 'package:unifesspa_ciencia/services/database_rest.dart';
 import 'package:unifesspa_ciencia/screens/new_research_project.dart';
 import 'package:unifesspa_ciencia/models/user.dart';
@@ -41,7 +42,6 @@ class _AllProjectsTabState extends State<AllProjectsTab> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           var researchProjectsList = snapshot.data;
-          print(researchProjectsList);
           return Scaffold(
               body: (ListView.builder(
             itemCount: researchProjectsList.length,
@@ -51,8 +51,9 @@ class _AllProjectsTabState extends State<AllProjectsTab> {
               for (var item in researchProjectsList[index]
                   ['users_in_research']) {
                 usersInResearch += item['first_name'] + " ; ";
-                print(item);
-                if (item['user_id'] == this.user.id && item['status'] == 'APROVADO' || item['status'] == 'ADMINISTRADOR' ) {
+                if (item['user_id'] == this.user.id &&
+                        (item['status'] == 'APROVADO' ||
+                    item['status'] == 'ADMINISTRADOR')) {
                   usuarioInserido = true;
                 }
               }
@@ -86,7 +87,10 @@ class _AllProjectsTabState extends State<AllProjectsTab> {
                                 style: TextStyle(fontSize: 15),
                               ),
                               Divider(),
-                              solicitarIf(usuarioInserido,userId: this.user.id,researchProjectId: researchProjectsList[index]['id'])
+                              solicitarIf(usuarioInserido,
+                                  userId: this.user.id,
+                                  researchProjectId: researchProjectsList[index]
+                                      ['id'])
                               /*,
                               new Text("Orientador: "+researchProjectsList[index]['user_owner']['first_name '])*/
                             ],
@@ -338,10 +342,24 @@ class _FeedPageState extends State<FeedPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          actions: <Widget>[Icon(Icons.help)],
-          title: Text("Universidade Ciência"),
-          centerTitle: true),
+      appBar: AppBar(actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text("FACEEL Ciência"),
+                  centerTitle: true,
+                ),
+                body: LoginPage(),
+              );
+            }));
+          },
+        ),
+        Icon(Icons.help)
+      ], title: Text("Universidade Ciência"), centerTitle: true),
       body: _tabsBottomWidgets[_currentTabValue],
       bottomNavigationBar: BottomNavigationBar(
         iconSize: 35,
