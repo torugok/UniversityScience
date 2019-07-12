@@ -14,7 +14,7 @@ class _UniversityAppState extends State<UniversityApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text("FACEEL Ciência"),
+          title: Text("Universidade Ciência"),
           centerTitle: true,
         ),
         body: LoginPage(),
